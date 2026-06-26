@@ -718,10 +718,16 @@ function getRandomQuestions() {
         // QUIZ
         // ============================================
         function showQuiz() {
-            gameState.currentQuestion = 0;
-            showPhase('quizPhase');
-            displayQuestion();
-        }
+    gameState.currentQuestion = 0;
+    gameState.currentQuestions = getRandomQuestions(); // Acak pertanyaan
+    showPhase('quizPhase');
+    displayQuestion();
+}
+
+function displayQuestion() {
+    var q = gameState.currentQuestions[gameState.currentQuestion]; // Pakai pertanyaan yang sudah diacak
+    // ... kode selanjutnya sama
+}
 
         function displayQuestion() {
             var q = questions[gameState.currentQuestion];
