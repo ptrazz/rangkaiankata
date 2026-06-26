@@ -287,7 +287,7 @@
                 <ul style="margin-left: 20px; color: #555;">
                     <li> Choose a puzzle image below</li>
                     <li>📸 Study the image (60 seconds or skip!)</li>
-                    <li>❓ Answer 4 questions correctly</li>
+                    <li>❓ Answer questions correctly</li>
                     <li>🧩 Complete puzzle (auto-sized, max 25 pieces)</li>
                     <li>✍️ Write a story (min. 200 words)</li>
                     <li>🏆 Get on the leaderboard!</li>
@@ -419,12 +419,50 @@
             cols: 5
         };
 
-        var questions = [
-            { question: "What is the main color in the image?", answers: ["green", "white", "brown", "blue", "red", "yellow"] },
-            { question: "How many main objects do you see?", answers: ["many", "several", "multiple", "lots"] },
-            { question: "Is it an indoor or outdoor scene?", answers: ["indoor", "inside", "outdoor", "outside"] },
-            { question: "Does the scene look modern?", answers: ["yes", "y", "modern"] }
-        ];
+        // Pool pertanyaan yang bisa diacak
+var questionPool = [
+    // Warna
+    { question: "What is the dominant color in the image?", answers: ["white", "beige", "brown", "gray", "blue", "green", "yellow", "red"] },
+    { question: "What color is the main furniture?", answers: ["brown", "white", "beige", "gray", "black"] },
+    { question: "Are there any green elements?", answers: ["yes", "y", "plants", "green"] },
+    
+    // Ruangan
+    { question: "Is this an indoor or outdoor scene?", answers: ["indoor", "inside", "outdoor", "outside"] },
+    { question: "What type of room is this?", answers: ["kitchen", "living room", "bedroom", "bathroom", "dining room"] },
+    { question: "How many windows can you see?", answers: ["many", "several", "multiple", "2", "3", "4"] },
+    
+    // Furniture
+    { question: "Is there a table in the room?", answers: ["yes", "y", "table"] },
+    { question: "Are there chairs visible?", answers: ["yes", "y", "chairs"] },
+    { question: "Is there a sofa or couch?", answers: ["yes", "y", "sofa", "couch"] },
+    { question: "Can you see any plants?", answers: ["yes", "y", "plants", "green"] },
+    
+    // Gaya
+    { question: "Does the room look modern?", answers: ["yes", "y", "modern", "contemporary"] },
+    { question: "Is the style minimalist?", answers: ["yes", "y", "minimalist", "simple"] },
+    { question: "Does it look cozy?", answers: ["yes", "y", "cozy", "warm"] },
+    
+    // Pencahayaan
+    { question: "Is the room well-lit?", answers: ["yes", "y", "bright", "light"] },
+    { question: "Is there natural light?", answers: ["yes", "y", "natural", "sunlight"] },
+    
+    // Dekorasi
+    { question: "Are there any decorations on the walls?", answers: ["yes", "y", "art", "paintings", "frames"] },
+    { question: "Is there a rug or carpet?", answers: ["yes", "y", "rug", "carpet"] },
+    { question: "Can you see any lamps?", answers: ["yes", "y", "lamp", "lighting"] },
+    
+    // Kondisi
+    { question: "Does the room look clean?", answers: ["yes", "y", "clean", "tidy"] },
+    { question: "Is the room spacious?", answers: ["yes", "y", "spacious", "large", "big"] }
+];
+
+// Fungsi untuk acak 4 pertanyaan
+function getRandomQuestions() {
+    // Shuffle array
+    var shuffled = questionPool.sort(function() { return 0.5 - Math.random(); });
+    // Ambil 4 pertama
+    return shuffled.slice(0, 4);
+}
 
         // ============================================
         // CALCULATE PUZZLE SIZE (MAX 25 PIECES)
