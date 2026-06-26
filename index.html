@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Challenge - Smart Puzzle</title>
+    <title>Memory Challenge - Complete</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -47,11 +47,7 @@
         .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .btn-skip {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-            font-size: 1em;
-            padding: 10px 25px;
-        }
+        .btn-skip { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); font-size: 1em; padding: 10px 25px; }
 
         .input-field {
             width: 100%; padding: 15px; font-size: 1.1em;
@@ -59,32 +55,18 @@
         }
         .input-field:focus { outline: none; border-color: #667eea; }
 
-        .timer-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
+        .timer-container { text-align: center; margin-bottom: 20px; }
         .timer {
             font-size: 3em; font-weight: bold; color: #667eea;
-            padding: 10px 30px; background: #f0f0f0; border-radius: 10px;
-            display: inline-block;
+            padding: 10px 30px; background: #f0f0f0; border-radius: 10px; display: inline-block;
         }
         .timer.warning { color: #e74c3c; animation: pulse 1s infinite; }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
         .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 10px;
-            margin: 15px 0;
-            overflow: hidden;
+            width: 100%; height: 8px; background: #e0e0e0;
+            border-radius: 10px; margin: 15px 0; overflow: hidden;
         }
-
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
@@ -101,56 +83,26 @@
         .feedback.correct { background: #d4edda; color: #155724; display: block; }
         .feedback.wrong { background: #f8d7da; color: #721c24; display: block; }
 
-        .puzzle-wrapper {
-            max-width: 800px;
-            margin: 20px auto;
-        }
-
+        .puzzle-wrapper { max-width: 800px; margin: 20px auto; }
         .puzzle-board {
-            display: grid;
-            gap: 2px;
-            background: #ddd;
-            padding: 10px;
-            border-radius: 10px;
-            width: 100%;
+            display: grid; gap: 2px; background: #ddd;
+            padding: 10px; border-radius: 10px; width: 100%;
         }
-
         .piece-slot {
-            border: 2px dashed #ccc;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            border: 2px dashed #ccc; background: white;
+            display: flex; align-items: center; justify-content: center;
             aspect-ratio: 1 / 1;
         }
         .piece-slot.filled { border-style: solid; border-color: #667eea; }
-
-        .puzzle-piece {
-            width: 100%;
-            height: 100%;
-            cursor: move;
-            background-repeat: no-repeat;
-            transition: transform 0.2s;
-        }
+        .puzzle-piece { width: 100%; height: 100%; cursor: move; background-repeat: no-repeat; transition: transform 0.2s; }
         .puzzle-piece:hover { transform: scale(1.05); z-index: 10; }
 
         .pieces-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            justify-content: center;
-            margin-top: 20px;
-            padding: 20px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            min-height: 100px;
+            display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;
+            margin-top: 20px; padding: 20px; background: #f0f0f0;
+            border-radius: 10px; min-height: 100px;
         }
-        .piece-slot-in-container {
-            width: 70px;
-            height: 70px;
-            border: 1px solid #ddd;
-            background: white;
-        }
+        .piece-slot-in-container { width: 70px; height: 70px; border: 1px solid #ddd; background: white; }
 
         textarea {
             width: 100%; min-height: 300px; padding: 20px; font-size: 1em;
@@ -158,7 +110,6 @@
             font-family: inherit; line-height: 1.6;
         }
         textarea:focus { outline: none; border-color: #667eea; }
-
         .word-count { text-align: right; margin-top: 10px; color: #666; }
         .word-count.below-min { color: #e74c3c; }
 
@@ -181,20 +132,14 @@
         .leaderboard-item.top-1 { border-left-color: gold; background: #fff9e6; }
         .leaderboard-item.top-2 { border-left-color: silver; background: #f5f5f5; }
         .leaderboard-item.top-3 { border-left-color: #cd7f32; background: #fff5eb; }
-
         .rank { font-weight: bold; font-size: 1.3em; color: #667eea; }
         .player-name { font-weight: bold; }
         .score-value { color: #2ecc71; font-weight: bold; }
-
         .loading { text-align: center; padding: 20px; color: #666; }
         .success-message { text-align: center; padding: 40px; }
         .success-message h2 { color: #2ecc71; font-size: 2.5em; }
         .trophy { font-size: 5em; animation: bounce 1s infinite; }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-        }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
 
         .ai-evaluation { background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 20px; }
         .criteria-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
@@ -219,89 +164,59 @@
             gap: 15px;
             margin: 20px 0;
         }
-
         .image-card {
-            border: 3px solid #ddd;
-            border-radius: 10px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: white;
+            border: 3px solid #ddd; border-radius: 10px; overflow: hidden;
+            cursor: pointer; transition: all 0.3s; background: white;
         }
         .image-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
         .image-card.selected {
             border-color: #667eea;
             box-shadow: 0 0 0 4px rgba(102,126,234,0.3);
         }
-        .image-card img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            display: block;
-        }
-        .image-card-info {
-            padding: 10px;
-            text-align: center;
-        }
-        .image-card-title {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-        .image-card-difficulty {
-            font-size: 0.85em;
-            color: #666;
-        }
+        .image-card img { width: 100%; height: 150px; object-fit: cover; display: block; }
+        .image-card-info { padding: 10px; text-align: center; }
+        .image-card-title { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .image-card-difficulty { font-size: 0.85em; color: #666; }
         .difficulty-easy { color: #2ecc71; }
         .difficulty-medium { color: #f39c12; }
         .difficulty-hard { color: #e74c3c; }
 
         .puzzle-info {
-            text-align: center;
-            padding: 10px;
-            background: #e3f2fd;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            color: #1976d2;
-            font-weight: bold;
+            text-align: center; padding: 10px; background: #e3f2fd;
+            border-radius: 10px; margin-bottom: 15px; color: #1976d2; font-weight: bold;
         }
-
-        .skip-hint {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-        }
+        .skip-hint { font-size: 0.9em; color: #666; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧠 Memory Challenge</h1>
+        <h1> Memory Challenge</h1>
         <p class="subtitle">Smart Puzzle • Auto-Size • Skip Timer</p>
 
         <div id="statusBar" class="status-bar loading">⏳ Loading puzzles...</div>
 
-        <!-- Start Screen with Image Selector -->
+        <!-- Start Screen -->
         <div class="phase start-screen active" id="startScreen">
             <div class="instructions">
                 <h3>How to Play:</h3>
                 <ul style="margin-left: 20px; color: #555;">
-                    <li> Choose a puzzle image below</li>
+                    <li>🎨 Choose a puzzle image below</li>
                     <li>📸 Study the image (60 seconds or skip!)</li>
-                    <li>❓ Answer questions correctly</li>
+                    <li>❓ Answer 4 questions correctly</li>
                     <li>🧩 Complete puzzle (auto-sized, max 25 pieces)</li>
                     <li>✍️ Write a story (min. 200 words)</li>
                     <li>🏆 Get on the leaderboard!</li>
                 </ul>
             </div>
 
-            <h3 style="margin-bottom: 10px; color: #333;"> Choose Your Puzzle:</h3>
+            <h3 style="margin-bottom: 10px; color: #333;">🎨 Choose Your Puzzle:</h3>
             <div class="image-selector" id="imageSelector">
                 <div class="loading">Loading images...</div>
             </div>
 
             <input type="text" id="playerName" class="input-field" placeholder="Enter your name" maxlength="50" style="margin-top: 20px;">
             <div style="text-align: center;">
-                <button class="btn" id="btnStart" onclick="startGame()" disabled>🎮 Select a puzzle first</button>
+                <button class="btn" id="btnStart" onclick="startGame()" disabled> Select a puzzle first</button>
                 <button class="btn btn-secondary" onclick="showLeaderboard()">🏆 Leaderboard</button>
             </div>
         </div>
@@ -356,7 +271,7 @@
                 <textarea id="storyText" placeholder="Start writing..." oninput="checkWordCount()"></textarea>
                 <div class="word-count" id="wordCount">Words: 0 / 200</div>
                 <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn" onclick="submitStory()"> Submit Story</button>
+                    <button class="btn" onclick="submitStory()">📤 Submit Story</button>
                 </div>
                 <div class="ai-evaluation hidden" id="aiEvaluation"></div>
             </div>
@@ -395,7 +310,7 @@
 
     <script>
         // ============================================
-        // SUPABASE CONFIG
+        // SUPABASE CONFIG - GANTI DENGAN KREDENSIAL ANDA
         // ============================================
         var SUPABASE_URL = 'https://gtafbcgwchycgbigvqcn.supabase.co';
         var SUPABASE_ANON_KEY = 'sb_publishable_EU2drEpjbDKPKUqxslnuCg_0MKLj7rH';
@@ -408,6 +323,7 @@
             playerName: '',
             selectedImage: null,
             allImages: [],
+            currentQuestions: [],
             currentQuestion: 0,
             timeLeft: 60,
             timerInterval: null,
@@ -419,50 +335,72 @@
             cols: 5
         };
 
-        // Pool pertanyaan yang bisa diacak
-var questionPool = [
-    // Warna
-    { question: "What is the dominant color in the image?", answers: ["white", "beige", "brown", "gray", "blue", "green", "yellow", "red"] },
-    { question: "What color is the main furniture?", answers: ["brown", "white", "beige", "gray", "black"] },
-    { question: "Are there any green elements?", answers: ["yes", "y", "plants", "green"] },
-    
-    // Ruangan
-    { question: "Is this an indoor or outdoor scene?", answers: ["indoor", "inside", "outdoor", "outside"] },
-    { question: "What type of room is this?", answers: ["kitchen", "living room", "bedroom", "bathroom", "dining room"] },
-    { question: "How many windows can you see?", answers: ["many", "several", "multiple", "2", "3", "4"] },
-    
-    // Furniture
-    { question: "Is there a table in the room?", answers: ["yes", "y", "table"] },
-    { question: "Are there chairs visible?", answers: ["yes", "y", "chairs"] },
-    { question: "Is there a sofa or couch?", answers: ["yes", "y", "sofa", "couch"] },
-    { question: "Can you see any plants?", answers: ["yes", "y", "plants", "green"] },
-    
-    // Gaya
-    { question: "Does the room look modern?", answers: ["yes", "y", "modern", "contemporary"] },
-    { question: "Is the style minimalist?", answers: ["yes", "y", "minimalist", "simple"] },
-    { question: "Does it look cozy?", answers: ["yes", "y", "cozy", "warm"] },
-    
-    // Pencahayaan
-    { question: "Is the room well-lit?", answers: ["yes", "y", "bright", "light"] },
-    { question: "Is there natural light?", answers: ["yes", "y", "natural", "sunlight"] },
-    
-    // Dekorasi
-    { question: "Are there any decorations on the walls?", answers: ["yes", "y", "art", "paintings", "frames"] },
-    { question: "Is there a rug or carpet?", answers: ["yes", "y", "rug", "carpet"] },
-    { question: "Can you see any lamps?", answers: ["yes", "y", "lamp", "lighting"] },
-    
-    // Kondisi
-    { question: "Does the room look clean?", answers: ["yes", "y", "clean", "tidy"] },
-    { question: "Is the room spacious?", answers: ["yes", "y", "spacious", "large", "big"] }
-];
+        // ============================================
+        // QUESTIONS PER GAMBAR
+        // ============================================
+        var questionsByImage = {
+            'Mountain Road': [
+                { question: "Is there snow on the mountain?", answers: ["yes", "y", "snow", "snowy"] },
+                { question: "What season does it look like?", answers: ["autumn", "fall", "yellow"] },
+                { question: "Is there a road in the image?", answers: ["yes", "y", "road", "highway"] },
+                { question: "Are there trees with yellow leaves?", answers: ["yes", "y", "yellow", "autumn"] }
+            ],
+            'Cozy Kitchen': [
+                { question: "What material is the kitchen island made of?", answers: ["wood", "wooden"] },
+                { question: "Are there hanging pots and pans?", answers: ["yes", "y", "pots", "pans", "hanging"] },
+                { question: "What is hanging from the ceiling?", answers: ["lamp", "light", "pendant", "wicker"] },
+                { question: "Are there plants in the kitchen?", answers: ["yes", "y", "plants", "green"] }
+            ],
+            'Modern Living Room': [
+                { question: "What color are the accent pillows?", answers: ["blue", "teal", "turquoise"] },
+                { question: "Is there a fireplace?", answers: ["yes", "y", "fireplace"] },
+                { question: "Are there large windows?", answers: ["yes", "y", "windows", "big"] },
+                { question: "What type of flooring is visible?", answers: ["carpet", "rug", "soft"] }
+            ],
+            'Flower Park': [
+                { question: "Are there flowers in the image?", answers: ["yes", "y", "flowers", "blooming"] },
+                { question: "What colors are the flowers?", answers: ["red", "orange", "yellow", "colorful"] },
+                { question: "Is it a sunny day?", answers: ["yes", "y", "sunny", "bright"] },
+                { question: "Are there trees in the park?", answers: ["yes", "y", "trees", "green"] }
+            ],
+            'Modern Kitchen': [
+                { question: "What color are the kitchen cabinets?", answers: ["white", "gray", "light"] },
+                { question: "Is there a large window?", answers: ["yes", "y", "window", "big"] },
+                { question: "What can you see outside the window?", answers: ["trees", "plants", "garden", "green"] },
+                { question: "Is there a kitchen island?", answers: ["yes", "y", "island", "counter"] }
+            ],
+            'Bicycle & Garage': [
+                { question: "What color is the bicycle?", answers: ["blue", "purple", "violet"] },
+                { question: "What material is the garage door?", answers: ["wood", "wooden"] },
+                { question: "What color is the building made of?", answers: ["red", "brick", "brown"] },
+                { question: "Are there flowers near the garage?", answers: ["yes", "y", "flowers", "plants"] }
+            ],
+            'Cozy Bedroom': [
+                { question: "Are there plants in the bedroom?", answers: ["yes", "y", "plants", "green"] },
+                { question: "What color are the pillows?", answers: ["orange", "yellow", "green"] },
+                { question: "Is there a hanging lamp?", answers: ["yes", "y", "lamp", "wicker", "rattan"] },
+                { question: "Are there paintings on the wall?", answers: ["yes", "y", "paintings", "art", "frames"] }
+            ]
+        };
 
-// Fungsi untuk acak 4 pertanyaan
-function getRandomQuestions() {
-    // Shuffle array
-    var shuffled = questionPool.sort(function() { return 0.5 - Math.random(); });
-    // Ambil 4 pertama
-    return shuffled.slice(0, 4);
-}
+        // Fallback questions jika gambar tidak ada di list
+        var defaultQuestions = [
+            { question: "What is the dominant color in the image?", answers: ["white", "beige", "brown", "gray", "blue", "green"] },
+            { question: "Is this an indoor or outdoor scene?", answers: ["indoor", "inside", "outdoor", "outside"] },
+            { question: "Does the scene look modern?", answers: ["yes", "y", "modern", "contemporary"] },
+            { question: "Are there plants visible?", answers: ["yes", "y", "plants", "green"] }
+        ];
+
+        // Fungsi untuk dapatkan pertanyaan berdasarkan gambar
+        function getQuestionsForImage(imageTitle) {
+            console.log(' Looking for questions for:', imageTitle);
+            if (questionsByImage[imageTitle]) {
+                console.log('✅ Found specific questions for:', imageTitle);
+                return questionsByImage[imageTitle];
+            }
+            console.log('⚠️ No specific questions, using default');
+            return defaultQuestions;
+        }
 
         // ============================================
         // CALCULATE PUZZLE SIZE (MAX 25 PIECES)
@@ -472,37 +410,24 @@ function getRandomQuestions() {
             var maxPieces = 25;
             var rows, cols;
 
-            // Jika landscape (lebar > tinggi)
             if (aspectRatio > 1.2) {
-                // Contoh: 1.5 ratio → 5x3 = 15 pieces
                 cols = 5;
                 rows = Math.round(cols / aspectRatio);
                 if (rows < 3) rows = 3;
-            }
-            // Jika portrait (tinggi > lebar)
-            else if (aspectRatio < 0.8) {
-                // Contoh: 0.67 ratio → 3x5 = 15 pieces
+            } else if (aspectRatio < 0.8) {
                 rows = 5;
                 cols = Math.round(rows * aspectRatio);
                 if (cols < 3) cols = 3;
-            }
-            // Jika square atau near-square
-            else {
-                // 5x5 = 25 pieces
+            } else {
                 rows = 5;
                 cols = 5;
             }
 
-            // Pastikan tidak lebih dari 25 pieces
             while (rows * cols > maxPieces) {
-                if (rows > cols) {
-                    rows--;
-                } else {
-                    cols--;
-                }
+                if (rows > cols) rows--;
+                else cols--;
             }
 
-            // Minimum 3x3 = 9 pieces
             if (rows < 3) rows = 3;
             if (cols < 3) cols = 3;
 
@@ -510,14 +435,20 @@ function getRandomQuestions() {
         }
 
         // ============================================
-        // INITIALIZATION
+        // INITIALIZATION - HANYA DIPANGGIL 1 KALI!
         // ============================================
         async function init() {
+            // Prevent double init
+            if (window.gameInitialized) {
+                console.log('️ Already initialized, skipping...');
+                return;
+            }
+            
             var statusBar = document.getElementById('statusBar');
-            var selector = document.getElementById('imageSelector');
 
             try {
-                console.log('Loading images from Supabase...');
+                console.log('🚀 Initializing game...');
+                console.log('Supabase URL:', SUPABASE_URL);
 
                 var result = await db
                     .from('images')
@@ -526,11 +457,14 @@ function getRandomQuestions() {
                     .order('created_at', { ascending: false });
 
                 if (result.error) {
-                    console.error('Error:', result.error);
+                    console.error('❌ Database error:', result.error);
                     statusBar.className = 'status-bar error';
                     statusBar.textContent = '❌ ' + result.error.message;
                     return;
                 }
+
+                console.log('📊 Total images from database:', result.data ? result.data.length : 0);
+                console.log('📋 Images data:', result.data);
 
                 if (!result.data || result.data.length === 0) {
                     statusBar.className = 'status-bar error';
@@ -543,22 +477,27 @@ function getRandomQuestions() {
 
                 statusBar.className = 'status-bar success';
                 statusBar.textContent = '✅ ' + result.data.length + ' puzzles available!';
-
-                console.log('Loaded images:', result.data);
+                
+                window.gameInitialized = true;
+                console.log('✅ Game initialized successfully!');
 
             } catch (err) {
-                console.error('Init error:', err);
+                console.error('❌ Init error:', err);
                 statusBar.className = 'status-bar error';
                 statusBar.textContent = '❌ ' + err.message;
             }
         }
 
         // ============================================
-        // RENDER IMAGE SELECTOR
+        // RENDER IMAGE SELECTOR - CLEAR DULU SEBELUM RENDER
         // ============================================
         function renderImageSelector(images) {
             var selector = document.getElementById('imageSelector');
+            
+            // CRITICAL: Clear container first!
             selector.innerHTML = '';
+            
+            console.log(' Rendering', images.length, 'images...');
 
             images.forEach(function(img, index) {
                 var card = document.createElement('div');
@@ -567,18 +506,21 @@ function getRandomQuestions() {
                 card.onclick = function() { selectImage(index); };
 
                 var diffClass = 'difficulty-' + (img.difficulty || 'medium');
+                var difficultyText = (img.difficulty || 'medium').toUpperCase();
 
                 card.innerHTML =
                     '<img src="' + img.image_url + '" alt="' + img.title + '" onerror="this.src=\'https://via.placeholder.com/200x150?text=No+Image\'">' +
                     '<div class="image-card-info">' +
                         '<div class="image-card-title">' + img.title + '</div>' +
                         '<div class="image-card-difficulty ' + diffClass + '">' +
-                            (img.difficulty || 'medium').toUpperCase() +
+                            difficultyText + ' • ' + (img.puzzle_rows || 5) + 'x' + (img.puzzle_cols || 5) +
                         '</div>' +
                     '</div>';
 
                 selector.appendChild(card);
             });
+            
+            console.log('✅ Rendering complete! Total cards:', selector.children.length);
         }
 
         // ============================================
@@ -624,8 +566,11 @@ function getRandomQuestions() {
             }
 
             gameState.playerName = name;
+            
+            // Load pertanyaan spesifik untuk gambar ini
+            gameState.currentQuestions = getQuestionsForImage(gameState.selectedImage.title);
+            console.log('📝 Loaded', gameState.currentQuestions.length, 'questions for', gameState.selectedImage.title);
 
-            // Preload image untuk hitung puzzle size
             var img = new Image();
             img.onload = function() {
                 var size = calculatePuzzleSize(img.naturalWidth, img.naturalHeight);
@@ -634,7 +579,6 @@ function getRandomQuestions() {
 
                 console.log('Puzzle size:', size);
 
-                // Show memory phase
                 document.getElementById('memoryImage').src = gameState.selectedImage.image_url;
                 document.getElementById('puzzleInfo').textContent =
                     '🎨 ' + gameState.selectedImage.title + ' • Will be ' + gameState.rows + 'x' + gameState.cols + ' = ' + (gameState.rows * gameState.cols) + ' pieces';
@@ -643,7 +587,6 @@ function getRandomQuestions() {
                 startTimer();
             };
             img.onerror = function() {
-                // Fallback jika image gagal load
                 gameState.rows = 5;
                 gameState.cols = 5;
                 document.getElementById('memoryImage').src = gameState.selectedImage.image_url;
@@ -654,7 +597,6 @@ function getRandomQuestions() {
             };
             img.src = gameState.selectedImage.image_url;
 
-            // Create session
             try {
                 var sessionResult = await db
                     .from('game_sessions')
@@ -687,7 +629,6 @@ function getRandomQuestions() {
                 gameState.timeLeft--;
                 timerEl.textContent = gameState.timeLeft;
 
-                // Update progress bar
                 var progress = (gameState.timeLeft / 60) * 100;
                 progressFill.style.width = progress + '%';
 
@@ -703,9 +644,6 @@ function getRandomQuestions() {
             }, 1000);
         }
 
-        // ============================================
-        // SKIP TIMER
-        // ============================================
         function skipTimer() {
             if (gameState.timerInterval) {
                 clearInterval(gameState.timerInterval);
@@ -718,29 +656,45 @@ function getRandomQuestions() {
         // QUIZ
         // ============================================
         function showQuiz() {
-    gameState.currentQuestion = 0;
-    gameState.currentQuestions = getRandomQuestions(); // Acak pertanyaan
-    showPhase('quizPhase');
-    displayQuestion();
-}
-
-function displayQuestion() {
-    var q = gameState.currentQuestions[gameState.currentQuestion]; // Pakai pertanyaan yang sudah diacak
-    // ... kode selanjutnya sama
-}
+            gameState.currentQuestion = 0;
+            
+            // Pastikan pertanyaan sudah di-load
+            if (!gameState.currentQuestions || gameState.currentQuestions.length === 0) {
+                gameState.currentQuestions = getQuestionsForImage(gameState.selectedImage.title);
+            }
+            
+            console.log('📝 Quiz started! Questions:', gameState.currentQuestions);
+            
+            showPhase('quizPhase');
+            displayQuestion();
+        }
 
         function displayQuestion() {
-            var q = questions[gameState.currentQuestion];
+            console.log('Displaying question', gameState.currentQuestion + 1);
+            
+            if (!gameState.currentQuestions || gameState.currentQuestions.length === 0) {
+                alert('Error: No questions loaded!');
+                return;
+            }
+            
+            var q = gameState.currentQuestions[gameState.currentQuestion];
+            
+            if (!q) {
+                alert('Error: Question not found!');
+                return;
+            }
+            
             document.getElementById('currentQ').textContent = gameState.currentQuestion + 1;
-
-            document.getElementById('quizContainer').innerHTML =
+            
+            var container = document.getElementById('quizContainer');
+            container.innerHTML =
                 '<div class="question">' +
                     '<h3>' + q.question + '</h3>' +
                     '<input type="text" id="answerInput" class="input-field" placeholder="Type your answer..." autocomplete="off">' +
                     '<button class="btn" onclick="checkAnswer()">Submit Answer</button>' +
                     '<div class="feedback" id="feedback"></div>' +
                 '</div>';
-
+            
             var input = document.getElementById('answerInput');
             input.focus();
             input.addEventListener('keypress', function(e) {
@@ -749,16 +703,23 @@ function displayQuestion() {
         }
 
         function checkAnswer() {
-            var input = document.getElementById('answerInput').value.toLowerCase().trim();
+            var input = document.getElementById('answerInput');
             var feedback = document.getElementById('feedback');
-            var q = questions[gameState.currentQuestion];
-
-            if (q.answers.indexOf(input) !== -1) {
+            
+            if (!input || !feedback) return;
+            
+            var inputValue = input.value.toLowerCase().trim();
+            var q = gameState.currentQuestions[gameState.currentQuestion];
+            
+            console.log('User answer:', inputValue);
+            console.log('Correct answers:', q.answers);
+            
+            if (q.answers.indexOf(inputValue) !== -1) {
                 feedback.className = 'feedback correct';
                 feedback.textContent = '✅ Correct!';
                 setTimeout(function() {
                     gameState.currentQuestion++;
-                    if (gameState.currentQuestion < questions.length) {
+                    if (gameState.currentQuestion < gameState.currentQuestions.length) {
                         displayQuestion();
                     } else {
                         showPuzzle();
@@ -772,7 +733,7 @@ function displayQuestion() {
         }
 
         // ============================================
-        // PUZZLE - AUTO-SIZE (MAX 25 PIECES)
+        // PUZZLE
         // ============================================
         function showPuzzle() {
             showPhase('puzzlePhase');
@@ -791,23 +752,15 @@ function displayQuestion() {
             var totalPieces = rows * cols;
             var imageUrl = gameState.selectedImage.image_url;
 
-            // Update puzzle info
             document.getElementById('puzzleBoardInfo').textContent =
-                ' ' + gameState.selectedImage.title + ' • Grid: ' + rows + 'x' + cols + ' = ' + totalPieces + ' pieces';
+                '🧩 ' + gameState.selectedImage.title + ' • Grid: ' + rows + 'x' + cols + ' = ' + totalPieces + ' pieces';
 
-            // Set grid template dinamis
             board.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
 
-            // Preload image untuk dapat aspect ratio
             var img = new Image();
             img.onload = function() {
-                var imgWidth = img.naturalWidth;
-                var imgHeight = img.naturalHeight;
-                var aspectRatio = imgWidth / imgHeight;
-
-                // Set aspect ratio board
+                var aspectRatio = img.naturalWidth / img.naturalHeight;
                 board.style.aspectRatio = aspectRatio + ' / 1';
-
                 createPieces(rows, cols, totalPieces, imageUrl);
             };
             img.onerror = function() {
@@ -821,7 +774,6 @@ function displayQuestion() {
             var board = document.getElementById('puzzleBoard');
             var container = document.getElementById('piecesContainer');
 
-            // Buat slots di board
             for (var i = 0; i < totalPieces; i++) {
                 var slot = document.createElement('div');
                 slot.className = 'piece-slot';
@@ -831,7 +783,6 @@ function displayQuestion() {
                 board.appendChild(slot);
             }
 
-            // Buat pieces
             var pieces = [];
             for (var j = 0; j < totalPieces; j++) {
                 var piece = document.createElement('div');
@@ -856,7 +807,6 @@ function displayQuestion() {
                 pieces.push(piece);
             }
 
-            // Shuffle dan masukkan ke container
             pieces.sort(function() { return Math.random() - 0.5; });
             pieces.forEach(function(piece) {
                 var slot = document.createElement('div');
@@ -1113,7 +1063,7 @@ function displayQuestion() {
         }
 
         // ============================================
-        // RUN INIT
+        // RUN INIT - HANYA 1 KALI!
         // ============================================
         init();
     </script>
