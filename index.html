@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Challenge - Smart Puzzle</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 { color: #333; text-align: center; margin-bottom: 10px; font-size: 2.5em; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+
+        .phase { display: none; }
+        .phase.active { display: block; animation: fadeIn 0.5s ease; }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; border: none; padding: 15px 40px; font-size: 1.2em;
+            border-radius: 50px; cursor: pointer; transition: all 0.3s; margin: 10px;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(102,126,234,0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-skip {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            font-size: 1em;
+            padding: 10px 25px;
+        }
+
+        .input-field {
+            width: 100%; padding: 15px; font-size: 1.1em;
+            border: 2px solid #ddd; border-radius: 10px; margin: 10px 0;
+        }
+        .input-field:focus { outline: none; border-color: #667eea; }
+
+        .timer-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .timer {
+            font-size: 3em; font-weight: bold; color: #667eea;
+            padding: 10px 30px; background: #f0f0f0; border-radius: 10px;
+            display: inline-block;
+        }
+        .timer.warning { color: #e74c3c; animation: pulse 1s infinite; }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 1s linear;
+            border-radius: 10px;
+        }
+
+        .memory-image { max-width: 100%; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+        .question { background: #f8f9fa; padding: 30px; border-radius: 15px; margin-bottom: 20px; }
+        .question h3 { color: #333; margin-bottom: 20px; }
+
+        .feedback { padding: 15px; border-radius: 10px; margin-top: 15px; font-weight: bold; display: none; }
+        .feedback.correct { background: #d4edda; color: #155724; display: block; }
+        .feedback.wrong { background: #f8d7da; color: #721c24; display: block; }
+
+        .puzzle-wrapper {
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .puzzle-board {
+            display: grid;
+            gap: 2px;
+            background: #ddd;
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        .piece-slot {
+            border: 2px dashed #ccc;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1;
+        }
+        .piece-slot.filled { border-style: solid; border-color: #667eea; }
+
+        .puzzle-piece {
+            width: 100%;
+            height: 100%;
+            cursor: move;
+            background-repeat: no-repeat;
+            transition: transform 0.2s;
+        }
+        .puzzle-piece:hover { transform: scale(1.05); z-index: 10; }
+
+        .pieces-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            min-height: 100px;
+        }
+        .piece-slot-in-container {
+            width: 70px;
+            height: 70px;
+            border: 1px solid #ddd;
+            background: white;
+        }
+
+        textarea {
+            width: 100%; min-height: 300px; padding: 20px; font-size: 1em;
+            border: 2px solid #ddd; border-radius: 10px; resize: vertical;
+            font-family: inherit; line-height: 1.6;
+        }
+        textarea:focus { outline: none; border-color: #667eea; }
+
+        .word-count { text-align: right; margin-top: 10px; color: #666; }
+        .word-count.below-min { color: #e74c3c; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+        }
+        .modal.show { display: flex; justify-content: center; align-items: center; }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 20px;
+            max-width: 600px; width: 90%; max-height: 80vh;
+            overflow-y: auto; position: relative;
+        }
+        .close { position: absolute; top: 10px; right: 20px; font-size: 2em; cursor: pointer; color: #999; }
+
+        .leaderboard-item {
+            display: flex; justify-content: space-between; padding: 15px;
+            margin: 10px 0; background: #f8f9fa; border-radius: 10px; border-left: 4px solid #667eea;
+        }
+        .leaderboard-item.top-1 { border-left-color: gold; background: #fff9e6; }
+        .leaderboard-item.top-2 { border-left-color: silver; background: #f5f5f5; }
+        .leaderboard-item.top-3 { border-left-color: #cd7f32; background: #fff5eb; }
+
+        .rank { font-weight: bold; font-size: 1.3em; color: #667eea; }
+        .player-name { font-weight: bold; }
+        .score-value { color: #2ecc71; font-weight: bold; }
+
+        .loading { text-align: center; padding: 20px; color: #666; }
+        .success-message { text-align: center; padding: 40px; }
+        .success-message h2 { color: #2ecc71; font-size: 2.5em; }
+        .trophy { font-size: 5em; animation: bounce 1s infinite; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .ai-evaluation { background: #f8f9fa; padding: 30px; border-radius: 15px; margin-top: 20px; }
+        .criteria-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+
+        .instructions {
+            background: #e3f2fd; padding: 20px; border-radius: 10px;
+            margin-bottom: 20px; border-left: 4px solid #2196f3;
+        }
+        .hidden { display: none !important; }
+
+        .status-bar {
+            text-align: center; padding: 10px; margin-bottom: 15px;
+            border-radius: 10px; font-weight: bold;
+        }
+        .status-bar.loading { background: #fff3cd; color: #856404; }
+        .status-bar.success { background: #d4edda; color: #155724; }
+        .status-bar.error { background: #f8d7da; color: #721c24; }
+
+        .image-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .image-card {
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        .image-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+        .image-card.selected {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.3);
+        }
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        .image-card-info {
+            padding: 10px;
+            text-align: center;
+        }
+        .image-card-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .image-card-difficulty {
+            font-size: 0.85em;
+            color: #666;
+        }
+        .difficulty-easy { color: #2ecc71; }
+        .difficulty-medium { color: #f39c12; }
+        .difficulty-hard { color: #e74c3c; }
+
+        .puzzle-info {
+            text-align: center;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            color: #1976d2;
+            font-weight: bold;
+        }
+
+        .skip-hint {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Memory Challenge</h1>
+        <p class="subtitle">Smart Puzzle • Auto-Size • Skip Timer</p>
+
+        <div id="statusBar" class="status-bar loading">⏳ Loading puzzles...</div>
+
+        <!-- Start Screen with Image Selector -->
+        <div class="phase start-screen active" id="startScreen">
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <ul style="margin-left: 20px; color: #555;">
+                    <li> Choose a puzzle image below</li>
+                    <li>📸 Study the image (60 seconds or skip!)</li>
+                    <li>❓ Answer 4 questions correctly</li>
+                    <li>🧩 Complete puzzle (auto-sized, max 25 pieces)</li>
+                    <li>✍️ Write a story (min. 200 words)</li>
+                    <li>🏆 Get on the leaderboard!</li>
+                </ul>
+            </div>
+
+            <h3 style="margin-bottom: 10px; color: #333;"> Choose Your Puzzle:</h3>
+            <div class="image-selector" id="imageSelector">
+                <div class="loading">Loading images...</div>
+            </div>
+
+            <input type="text" id="playerName" class="input-field" placeholder="Enter your name" maxlength="50" style="margin-top: 20px;">
+            <div style="text-align: center;">
+                <button class="btn" id="btnStart" onclick="startGame()" disabled>🎮 Select a puzzle first</button>
+                <button class="btn btn-secondary" onclick="showLeaderboard()">🏆 Leaderboard</button>
+            </div>
+        </div>
+
+        <!-- Memory Phase -->
+        <div class="phase" id="memoryPhase">
+            <div class="timer-container">
+                <div class="timer" id="timer">60</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 100%"></div>
+                </div>
+                <p style="margin-top: 10px; color: #666;">Study this image carefully!</p>
+                <p class="skip-hint">💡 Ready? Click the button below to skip!</p>
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-skip" onclick="skipTimer()">⏭️ I'm Ready! Skip to Quiz</button>
+                </div>
+                <div class="puzzle-info" id="puzzleInfo"></div>
+            </div>
+            <div style="text-align: center;">
+                <img id="memoryImage" class="memory-image" alt="Memory Image">
+            </div>
+        </div>
+
+        <!-- Quiz Phase -->
+        <div class="phase" id="quizPhase">
+            <div style="text-align: center; margin-bottom: 20px; color: #666;">
+                Question <span id="currentQ">1</span> of 4
+            </div>
+            <div id="quizContainer" style="max-width: 600px; margin: 0 auto;"></div>
+        </div>
+
+        <!-- Puzzle Phase -->
+        <div class="phase" id="puzzlePhase">
+            <div style="text-align: center;">
+                <h2>🧩 Puzzle Challenge</h2>
+                <p style="color: #666; margin: 15px 0;">Arrange pieces from memory!</p>
+                <div class="puzzle-info" id="puzzleBoardInfo"></div>
+                <div class="puzzle-wrapper">
+                    <div class="puzzle-board" id="puzzleBoard"></div>
+                </div>
+                <div class="pieces-container" id="piecesContainer"></div>
+                <button class="btn" onclick="checkPuzzle()" style="margin-top: 20px;">✓ Check Puzzle</button>
+            </div>
+        </div>
+
+        <!-- Story Phase -->
+        <div class="phase" id="storyPhase">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <h2>✍️ Write Your Story</h2>
+                <p style="margin: 15px 0; color: #666;">Describe the image you saw.</p>
+                <p style="color: #e74c3c; font-weight: bold;">Minimum 200 words</p>
+                <textarea id="storyText" placeholder="Start writing..." oninput="checkWordCount()"></textarea>
+                <div class="word-count" id="wordCount">Words: 0 / 200</div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn" onclick="submitStory()"> Submit Story</button>
+                </div>
+                <div class="ai-evaluation hidden" id="aiEvaluation"></div>
+            </div>
+        </div>
+
+        <!-- Success Screen -->
+        <div class="phase" id="successPhase">
+            <div class="success-message">
+                <div class="trophy">🏆</div>
+                <h2>Congratulations!</h2>
+                <p style="font-size: 1.2em; color: #555; margin: 20px 0;">You've completed all challenges!</p>
+                <p id="finalScore" style="font-size: 1.5em; color: #667eea; font-weight: bold;"></p>
+                <button class="btn" onclick="location.reload()" style="margin-top: 30px;">🔄 Play Again</button>
+            </div>
+        </div>
+
+        <!-- Game Over Screen -->
+        <div class="phase" id="gameOverPhase">
+            <div class="success-message">
+                <div style="font-size: 5em;">😔</div>
+                <h2 style="color: #e74c3c;">Game Over</h2>
+                <p id="gameOverReason" style="font-size: 1.2em; margin: 20px 0;"></p>
+                <button class="btn" onclick="location.reload()">🔄 Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="modal" id="leaderboardModal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLeaderboard()">&times;</span>
+            <h2 style="text-align: center; margin-bottom: 20px;">🏆 Leaderboard</h2>
+            <div id="leaderboardList"><div class="loading">Loading...</div></div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIG
+        // ============================================
+        var SUPABASE_URL = 'https://gtafbcgwchycgbigvqcn.supabase.co';
+        var SUPABASE_ANON_KEY = 'sb_publishable_EU2drEpjbDKPKUqxslnuCg_0MKLj7rH';
+        var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // GAME STATE
+        // ============================================
+        var gameState = {
+            playerName: '',
+            selectedImage: null,
+            allImages: [],
+            currentQuestion: 0,
+            timeLeft: 60,
+            timerInterval: null,
+            puzzleStartTime: null,
+            puzzleCompleted: false,
+            storyScore: 0,
+            sessionId: null,
+            rows: 5,
+            cols: 5
+        };
+
+        var questions = [
+            { question: "What is the main color in the image?", answers: ["green", "white", "brown", "blue", "red", "yellow"] },
+            { question: "How many main objects do you see?", answers: ["many", "several", "multiple", "lots"] },
+            { question: "Is it an indoor or outdoor scene?", answers: ["indoor", "inside", "outdoor", "outside"] },
+            { question: "Does the scene look modern?", answers: ["yes", "y", "modern"] }
+        ];
+
+        // ============================================
+        // CALCULATE PUZZLE SIZE (MAX 25 PIECES)
+        // ============================================
+        function calculatePuzzleSize(imgWidth, imgHeight) {
+            var aspectRatio = imgWidth / imgHeight;
+            var maxPieces = 25;
+            var rows, cols;
+
+            // Jika landscape (lebar > tinggi)
+            if (aspectRatio > 1.2) {
+                // Contoh: 1.5 ratio → 5x3 = 15 pieces
+                cols = 5;
+                rows = Math.round(cols / aspectRatio);
+                if (rows < 3) rows = 3;
+            }
+            // Jika portrait (tinggi > lebar)
+            else if (aspectRatio < 0.8) {
+                // Contoh: 0.67 ratio → 3x5 = 15 pieces
+                rows = 5;
+                cols = Math.round(rows * aspectRatio);
+                if (cols < 3) cols = 3;
+            }
+            // Jika square atau near-square
+            else {
+                // 5x5 = 25 pieces
+                rows = 5;
+                cols = 5;
+            }
+
+            // Pastikan tidak lebih dari 25 pieces
+            while (rows * cols > maxPieces) {
+                if (rows > cols) {
+                    rows--;
+                } else {
+                    cols--;
+                }
+            }
+
+            // Minimum 3x3 = 9 pieces
+            if (rows < 3) rows = 3;
+            if (cols < 3) cols = 3;
+
+            return { rows: rows, cols: cols, total: rows * cols };
+        }
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        async function init() {
+            var statusBar = document.getElementById('statusBar');
+            var selector = document.getElementById('imageSelector');
+
+            try {
+                console.log('Loading images from Supabase...');
+
+                var result = await db
+                    .from('images')
+                    .select('*')
+                    .eq('is_active', true)
+                    .order('created_at', { ascending: false });
+
+                if (result.error) {
+                    console.error('Error:', result.error);
+                    statusBar.className = 'status-bar error';
+                    statusBar.textContent = '❌ ' + result.error.message;
+                    return;
+                }
+
+                if (!result.data || result.data.length === 0) {
+                    statusBar.className = 'status-bar error';
+                    statusBar.textContent = '⚠️ No images found in database!';
+                    return;
+                }
+
+                gameState.allImages = result.data;
+                renderImageSelector(result.data);
+
+                statusBar.className = 'status-bar success';
+                statusBar.textContent = '✅ ' + result.data.length + ' puzzles available!';
+
+                console.log('Loaded images:', result.data);
+
+            } catch (err) {
+                console.error('Init error:', err);
+                statusBar.className = 'status-bar error';
+                statusBar.textContent = '❌ ' + err.message;
+            }
+        }
+
+        // ============================================
+        // RENDER IMAGE SELECTOR
+        // ============================================
+        function renderImageSelector(images) {
+            var selector = document.getElementById('imageSelector');
+            selector.innerHTML = '';
+
+            images.forEach(function(img, index) {
+                var card = document.createElement('div');
+                card.className = 'image-card';
+                card.dataset.index = index;
+                card.onclick = function() { selectImage(index); };
+
+                var diffClass = 'difficulty-' + (img.difficulty || 'medium');
+
+                card.innerHTML =
+                    '<img src="' + img.image_url + '" alt="' + img.title + '" onerror="this.src=\'https://via.placeholder.com/200x150?text=No+Image\'">' +
+                    '<div class="image-card-info">' +
+                        '<div class="image-card-title">' + img.title + '</div>' +
+                        '<div class="image-card-difficulty ' + diffClass + '">' +
+                            (img.difficulty || 'medium').toUpperCase() +
+                        '</div>' +
+                    '</div>';
+
+                selector.appendChild(card);
+            });
+        }
+
+        // ============================================
+        // SELECT IMAGE
+        // ============================================
+        function selectImage(index) {
+            gameState.selectedImage = gameState.allImages[index];
+
+            var cards = document.querySelectorAll('.image-card');
+            cards.forEach(function(card) { card.classList.remove('selected'); });
+            cards[index].classList.add('selected');
+
+            var btnStart = document.getElementById('btnStart');
+            btnStart.disabled = false;
+            btnStart.textContent = '🎮 Start Challenge';
+
+            console.log('Selected:', gameState.selectedImage);
+        }
+
+        // ============================================
+        // SHOW PHASE
+        // ============================================
+        function showPhase(phaseId) {
+            var phases = document.querySelectorAll('.phase');
+            for (var i = 0; i < phases.length; i++) {
+                phases[i].classList.remove('active');
+            }
+            document.getElementById(phaseId).classList.add('active');
+        }
+
+        // ============================================
+        // START GAME
+        // ============================================
+        async function startGame() {
+            var name = document.getElementById('playerName').value.trim();
+            if (!name) {
+                alert('Please enter your name!');
+                return;
+            }
+            if (!gameState.selectedImage) {
+                alert('Please select a puzzle image first!');
+                return;
+            }
+
+            gameState.playerName = name;
+
+            // Preload image untuk hitung puzzle size
+            var img = new Image();
+            img.onload = function() {
+                var size = calculatePuzzleSize(img.naturalWidth, img.naturalHeight);
+                gameState.rows = size.rows;
+                gameState.cols = size.cols;
+
+                console.log('Puzzle size:', size);
+
+                // Show memory phase
+                document.getElementById('memoryImage').src = gameState.selectedImage.image_url;
+                document.getElementById('puzzleInfo').textContent =
+                    '🎨 ' + gameState.selectedImage.title + ' • Will be ' + gameState.rows + 'x' + gameState.cols + ' = ' + (gameState.rows * gameState.cols) + ' pieces';
+
+                showPhase('memoryPhase');
+                startTimer();
+            };
+            img.onerror = function() {
+                // Fallback jika image gagal load
+                gameState.rows = 5;
+                gameState.cols = 5;
+                document.getElementById('memoryImage').src = gameState.selectedImage.image_url;
+                document.getElementById('puzzleInfo').textContent =
+                    '🎨 ' + gameState.selectedImage.title + ' • 5x5 = 25 pieces';
+                showPhase('memoryPhase');
+                startTimer();
+            };
+            img.src = gameState.selectedImage.image_url;
+
+            // Create session
+            try {
+                var sessionResult = await db
+                    .from('game_sessions')
+                    .insert([{
+                        player_name: name,
+                        image_id: gameState.selectedImage.id,
+                        current_phase: 1
+                    }])
+                    .select()
+                    .single();
+
+                if (!sessionResult.error && sessionResult.data) {
+                    gameState.sessionId = sessionResult.data.id;
+                }
+            } catch (e) {
+                console.warn('Session creation failed:', e);
+            }
+        }
+
+        // ============================================
+        // TIMER WITH SKIP
+        // ============================================
+        function startTimer() {
+            gameState.timeLeft = 60;
+            var timerEl = document.getElementById('timer');
+            var progressFill = document.getElementById('progressFill');
+            timerEl.classList.remove('warning');
+
+            gameState.timerInterval = setInterval(function() {
+                gameState.timeLeft--;
+                timerEl.textContent = gameState.timeLeft;
+
+                // Update progress bar
+                var progress = (gameState.timeLeft / 60) * 100;
+                progressFill.style.width = progress + '%';
+
+                if (gameState.timeLeft <= 10) {
+                    timerEl.classList.add('warning');
+                    progressFill.style.background = 'linear-gradient(90deg, #e74c3c 0%, #c0392b 100%)';
+                }
+
+                if (gameState.timeLeft <= 0) {
+                    clearInterval(gameState.timerInterval);
+                    showQuiz();
+                }
+            }, 1000);
+        }
+
+        // ============================================
+        // SKIP TIMER
+        // ============================================
+        function skipTimer() {
+            if (gameState.timerInterval) {
+                clearInterval(gameState.timerInterval);
+            }
+            console.log('Timer skipped!');
+            showQuiz();
+        }
+
+        // ============================================
+        // QUIZ
+        // ============================================
+        function showQuiz() {
+            gameState.currentQuestion = 0;
+            showPhase('quizPhase');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            var q = questions[gameState.currentQuestion];
+            document.getElementById('currentQ').textContent = gameState.currentQuestion + 1;
+
+            document.getElementById('quizContainer').innerHTML =
+                '<div class="question">' +
+                    '<h3>' + q.question + '</h3>' +
+                    '<input type="text" id="answerInput" class="input-field" placeholder="Type your answer..." autocomplete="off">' +
+                    '<button class="btn" onclick="checkAnswer()">Submit Answer</button>' +
+                    '<div class="feedback" id="feedback"></div>' +
+                '</div>';
+
+            var input = document.getElementById('answerInput');
+            input.focus();
+            input.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') checkAnswer();
+            });
+        }
+
+        function checkAnswer() {
+            var input = document.getElementById('answerInput').value.toLowerCase().trim();
+            var feedback = document.getElementById('feedback');
+            var q = questions[gameState.currentQuestion];
+
+            if (q.answers.indexOf(input) !== -1) {
+                feedback.className = 'feedback correct';
+                feedback.textContent = '✅ Correct!';
+                setTimeout(function() {
+                    gameState.currentQuestion++;
+                    if (gameState.currentQuestion < questions.length) {
+                        displayQuestion();
+                    } else {
+                        showPuzzle();
+                    }
+                }, 1000);
+            } else {
+                feedback.className = 'feedback wrong';
+                feedback.textContent = '❌ Wrong! Game over.';
+                setTimeout(function() { gameOver('Incorrect answer!'); }, 1500);
+            }
+        }
+
+        // ============================================
+        // PUZZLE - AUTO-SIZE (MAX 25 PIECES)
+        // ============================================
+        function showPuzzle() {
+            showPhase('puzzlePhase');
+            createPuzzle();
+            gameState.puzzleStartTime = Date.now();
+        }
+
+        function createPuzzle() {
+            var board = document.getElementById('puzzleBoard');
+            var container = document.getElementById('piecesContainer');
+            board.innerHTML = '';
+            container.innerHTML = '';
+
+            var rows = gameState.rows;
+            var cols = gameState.cols;
+            var totalPieces = rows * cols;
+            var imageUrl = gameState.selectedImage.image_url;
+
+            // Update puzzle info
+            document.getElementById('puzzleBoardInfo').textContent =
+                ' ' + gameState.selectedImage.title + ' • Grid: ' + rows + 'x' + cols + ' = ' + totalPieces + ' pieces';
+
+            // Set grid template dinamis
+            board.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+
+            // Preload image untuk dapat aspect ratio
+            var img = new Image();
+            img.onload = function() {
+                var imgWidth = img.naturalWidth;
+                var imgHeight = img.naturalHeight;
+                var aspectRatio = imgWidth / imgHeight;
+
+                // Set aspect ratio board
+                board.style.aspectRatio = aspectRatio + ' / 1';
+
+                createPieces(rows, cols, totalPieces, imageUrl);
+            };
+            img.onerror = function() {
+                board.style.aspectRatio = (cols / rows) + ' / 1';
+                createPieces(rows, cols, totalPieces, imageUrl);
+            };
+            img.src = imageUrl;
+        }
+
+        function createPieces(rows, cols, totalPieces, imageUrl) {
+            var board = document.getElementById('puzzleBoard');
+            var container = document.getElementById('piecesContainer');
+
+            // Buat slots di board
+            for (var i = 0; i < totalPieces; i++) {
+                var slot = document.createElement('div');
+                slot.className = 'piece-slot';
+                slot.dataset.index = i;
+                slot.addEventListener('dragover', handleDragOver);
+                slot.addEventListener('drop', handleDrop);
+                board.appendChild(slot);
+            }
+
+            // Buat pieces
+            var pieces = [];
+            for (var j = 0; j < totalPieces; j++) {
+                var piece = document.createElement('div');
+                piece.className = 'puzzle-piece';
+                piece.draggable = true;
+                piece.dataset.index = j;
+
+                var row = Math.floor(j / cols);
+                var col = j % cols;
+
+                var bgSizeX = cols * 100;
+                var bgSizeY = rows * 100;
+                var bgPosX = (col / (cols - 1)) * 100;
+                var bgPosY = (row / (rows - 1)) * 100;
+
+                piece.style.backgroundImage = 'url(' + imageUrl + ')';
+                piece.style.backgroundSize = bgSizeX + '% ' + bgSizeY + '%';
+                piece.style.backgroundPosition = bgPosX + '% ' + bgPosY + '%';
+
+                piece.addEventListener('dragstart', handleDragStart);
+                piece.addEventListener('dragend', handleDragEnd);
+                pieces.push(piece);
+            }
+
+            // Shuffle dan masukkan ke container
+            pieces.sort(function() { return Math.random() - 0.5; });
+            pieces.forEach(function(piece) {
+                var slot = document.createElement('div');
+                slot.className = 'piece-slot-in-container';
+                slot.appendChild(piece);
+                container.appendChild(slot);
+            });
+        }
+
+        var draggedPiece = null;
+
+        function handleDragStart(e) {
+            draggedPiece = this;
+            this.style.opacity = '0.5';
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            this.style.opacity = '1';
+            draggedPiece = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            if (draggedPiece && this.classList.contains('piece-slot')) {
+                var existing = this.querySelector('.puzzle-piece');
+                if (existing) {
+                    returnPieceToContainer(existing);
+                }
+                this.appendChild(draggedPiece);
+                this.classList.add('filled');
+                checkPuzzleProgress();
+            }
+        }
+
+        function returnPieceToContainer(piece) {
+            var container = document.getElementById('piecesContainer');
+            var slot = document.createElement('div');
+            slot.className = 'piece-slot-in-container';
+            slot.appendChild(piece);
+            container.appendChild(slot);
+        }
+
+        function checkPuzzleProgress() {
+            var slots = document.querySelectorAll('#puzzleBoard .piece-slot');
+            var totalPieces = gameState.rows * gameState.cols;
+            var correct = 0;
+
+            slots.forEach(function(slot, index) {
+                var piece = slot.querySelector('.puzzle-piece');
+                if (piece && parseInt(piece.dataset.index) === index) {
+                    correct++;
+                    piece.style.border = '2px solid #2ecc71';
+                } else if (piece) {
+                    piece.style.border = '2px solid #e74c3c';
+                }
+            });
+
+            if (correct === totalPieces) {
+                gameState.puzzleCompleted = true;
+                var puzzleTime = Math.floor((Date.now() - gameState.puzzleStartTime) / 1000);
+                setTimeout(function() {
+                    alert('🎉 Puzzle Completed in ' + puzzleTime + ' seconds!');
+                    showPhase('storyPhase');
+                }, 300);
+            }
+        }
+
+        function checkPuzzle() {
+            checkPuzzleProgress();
+            if (!gameState.puzzleCompleted) {
+                var slots = document.querySelectorAll('#puzzleBoard .piece-slot');
+                var totalPieces = gameState.rows * gameState.cols;
+                var filled = 0;
+                slots.forEach(function(s) { if (s.querySelector('.puzzle-piece')) filled++; });
+                alert('Progress: ' + filled + '/' + totalPieces + ' pieces placed. Keep going!');
+            }
+        }
+
+        // ============================================
+        // STORY
+        // ============================================
+        function checkWordCount() {
+            var text = document.getElementById('storyText').value;
+            var words = text.trim().split(/\s+/).filter(function(w) { return w.length > 0; });
+            var count = words.length;
+            var el = document.getElementById('wordCount');
+            el.textContent = 'Words: ' + count + ' / 200';
+            if (count < 200) {
+                el.classList.add('below-min');
+            } else {
+                el.classList.remove('below-min');
+            }
+            return count;
+        }
+
+        async function submitStory() {
+            var wordCount = checkWordCount();
+            if (wordCount < 200) {
+                alert('Please write at least 200 words!');
+                return;
+            }
+
+            var story = document.getElementById('storyText').value;
+            var evaluation = evaluateStory(story, wordCount);
+            gameState.storyScore = evaluation.totalScore;
+
+            var evalEl = document.getElementById('aiEvaluation');
+            evalEl.classList.remove('hidden');
+            evalEl.innerHTML =
+                '<h3>🤖 AI Evaluation</h3>' +
+                '<div style="font-size: 2em; text-align: center; color: #667eea; font-weight: bold; margin: 20px 0;">Score: ' + evaluation.totalScore + '/100</div>' +
+                evaluation.criteria.map(function(c) {
+                    return '<div class="criteria-item"><span>' + c.name + '</span><span>' + c.score + '/100</span></div>';
+                }).join('') +
+                '<div style="margin-top: 20px; padding: 15px; background: white; border-radius: 10px;"><strong>Feedback:</strong><br>' + evaluation.feedback + '</div>';
+
+            var quizScore = 100;
+            var puzzleTime = Math.floor((Date.now() - gameState.puzzleStartTime) / 1000);
+            var finalScore = Math.round((quizScore + evaluation.totalScore) / 2);
+
+            await saveToLeaderboard(finalScore, quizScore, puzzleTime, evaluation.totalScore);
+
+            if (gameState.sessionId) {
+                await db.from('game_sessions').update({
+                    current_phase: 4,
+                    story_text: story,
+                    completed_at: new Date().toISOString()
+                }).eq('id', gameState.sessionId);
+            }
+
+            setTimeout(function() {
+                document.getElementById('finalScore').textContent = 'Final Score: ' + finalScore + '/100';
+                showPhase('successPhase');
+            }, 3000);
+        }
+
+        function evaluateStory(story, wordCount) {
+            var words = story.trim().split(/\s+/);
+            var uniqueWords = new Set(words.map(function(w) { return w.toLowerCase(); }));
+            var vocabularyScore = Math.min((uniqueWords.size / wordCount) * 150, 100);
+
+            var descriptiveWords = ['beautiful', 'cozy', 'warm', 'bright', 'colorful', 'peaceful', 'comfortable', 'modern', 'elegant', 'stylish', 'green', 'soft', 'calm'];
+            var foundDescriptive = descriptiveWords.filter(function(w) { return story.toLowerCase().indexOf(w) !== -1; });
+            var descriptiveScore = Math.min((foundDescriptive.length / 5) * 100, 100);
+
+            var sentences = story.split(/[.!?]+/).filter(function(s) { return s.trim().length > 0; });
+            var avgLen = wordCount / sentences.length;
+            var structureScore = (avgLen >= 8 && avgLen <= 25) ? 100 : 70;
+
+            var creativityWords = ['imagine', 'perhaps', 'might', 'could', 'feels', 'seems', 'dream', 'wonder', 'maybe'];
+            var foundCreativity = creativityWords.filter(function(w) { return story.toLowerCase().indexOf(w) !== -1; });
+            var creativityScore = Math.min((foundCreativity.length / 4) * 100, 100);
+
+            var totalScore = Math.round((vocabularyScore + descriptiveScore + structureScore + creativityScore) / 4);
+
+            var feedback = '';
+            if (totalScore >= 90) feedback = 'Excellent! Vivid and creative storytelling!';
+            else if (totalScore >= 70) feedback = 'Great job! Good observation and creativity.';
+            else if (totalScore >= 50) feedback = 'Good effort! Add more descriptive details.';
+            else feedback = 'Nice try! Try to describe colors, textures, and emotions more.';
+
+            return {
+                totalScore: totalScore,
+                criteria: [
+                    { name: 'Vocabulary Diversity', score: Math.round(vocabularyScore) },
+                    { name: 'Descriptive Language', score: Math.round(descriptiveScore) },
+                    { name: 'Sentence Structure', score: Math.round(structureScore) },
+                    { name: 'Creativity', score: Math.round(creativityScore) }
+                ],
+                feedback: feedback
+            };
+        }
+
+        // ============================================
+        // LEADERBOARD
+        // ============================================
+        async function saveToLeaderboard(score, quizScore, puzzleTime, storyScore) {
+            try {
+                var result = await db.from('leaderboard').insert([{
+                    player_name: gameState.playerName,
+                    score: score,
+                    quiz_score: quizScore,
+                    puzzle_time: puzzleTime,
+                    story_score: storyScore,
+                    total_time: 60 + puzzleTime
+                }]);
+
+                if (result.error) console.error('Error saving:', result.error);
+                else console.log('Score saved!');
+            } catch (err) { console.error('Save error:', err); }
+        }
+
+        async function showLeaderboard() {
+            var modal = document.getElementById('leaderboardModal');
+            var list = document.getElementById('leaderboardList');
+            modal.classList.add('show');
+            list.innerHTML = '<div class="loading">Loading...</div>';
+
+            try {
+                var result = await db
+                    .from('leaderboard')
+                    .select('*')
+                    .order('score', { ascending: false })
+                    .order('total_time', { ascending: true })
+                    .limit(20);
+
+                if (result.error) throw result.error;
+
+                if (!result.data || result.data.length === 0) {
+                    list.innerHTML = '<p style="text-align: center; color: #666;">No scores yet. Be the first!</p>';
+                    return;
+                }
+
+                list.innerHTML = result.data.map(function(entry, idx) {
+                    var rank = idx + 1;
+                    var rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+                    var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+
+                    return '<div class="leaderboard-item ' + rankClass + '">' +
+                        '<div><span class="rank">' + medal + '</span> <span class="player-name">' + escapeHtml(entry.player_name) + '</span></div>' +
+                        '<div><span class="score-value">' + entry.score + ' pts</span>' +
+                        '<div style="font-size: 0.85em; color: #999;">⏱️ ' + entry.total_time + 's | 🧩 ' + entry.puzzle_time + 's</div></div></div>';
+                }).join('');
+            } catch (err) {
+                console.error('Leaderboard error:', err);
+                list.innerHTML = '<p style="color: #e74c3c;">Error loading leaderboard</p>';
+            }
+        }
+
+        function closeLeaderboard() {
+            document.getElementById('leaderboardModal').classList.remove('show');
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('leaderboardModal');
+            if (event.target === modal) closeLeaderboard();
+        };
+
+        function gameOver(reason) {
+            document.getElementById('gameOverReason').textContent = reason;
+            showPhase('gameOverPhase');
+        }
+
+        // ============================================
+        // RUN INIT
+        // ============================================
+        init();
+    </script>
+</body>
+</html>
